@@ -1,0 +1,50 @@
+__pycache__/
+*.pyc
+.DS_Store
+.env
+streamlit/secret/
+cat .gitignore
+```
+
+It must contain:
+```
+.env
+.streamlit/secrets.toml
+__pycache__/
+*.pyc
+.venv/
+pyvenv.cfg
+bin/
+lib/
+lib64/
+include/
+share/
+etc/
+# Python
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+
+# Streamlit secrets
+.streamlit/secrets.toml
+secrets.toml
+
+# Python
+.venv/
+venv/
+env/
+bin/
+lib/
+lib64/
+share/
+etc/
+include/
+pyvenv.cfg
+__pycache__/
+*.pyc
+
+# Streamlit secrets
+.streamlit/secrets.toml
+secrets.toml
