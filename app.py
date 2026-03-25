@@ -2,11 +2,25 @@ import pandas as pd
 import streamlit as st
 
 from agents.planner_agent import PlannerAgent
+from agents.portfolio_agent import PortfolioAgent
+from agents.explainer_agent import ExplainerAgent
+from engines.fire_math import calculate_fire_projection
 
 
 st.set_page_config(page_title="AI Money Mentor", layout="wide")
 st.title("AI Money Mentor")
-st.caption("Day 2 MVP - Money Health Score + FIRE Planner")
+st.caption("Day 4 MVP - Multi-Agent Financial Mentor")
+
+planner_agent = PlannerAgent()
+portfolio_agent = PortfolioAgent()
+explainer_agent = ExplainerAgent()
+
+
+def format_inr(value: float) -> str:
+    return f"Rs. {value:,.0f}"
+
+
+tab1, tab2, tab3 = st.tabs(["Money Health Score", "Portfolio X-Ray", "AI Mentor Summary"])
 
 with st.sidebar:
     st.header("User Profile")
@@ -57,88 +71,114 @@ profile = {
     "retirement_age_goal": retirement_age_goal,
 }
 
-agent = PlannerAgent()
+if "portfolio_result" not in st.session_state:
+    st.session_state["portfolio_result"] = None
 
+planner_result = planner_agent.analyze_profile(profile)
 
-def format_inr(value: float) -> str:
-    return f"Rs. {value:,.0f}"
-
-
-if st.button("Analyze Profile"):
-    result = agent.analyze_profile(profile)
-
+with tab1:
     st.subheader("Overall Financial Health")
-    col1, col2 = st.columns([1, 2])
-    with col1:
-        st.metric("Money Health Score", result["overall_score"])
-    with col2:
-        st.info(result["overall_summary"])
+    c1, c2 = st.columns([1, 2])
+    with c1:
+        st.metric("Money Health Score", planner_result["overall_score"])
+    with c2:
+        st.info(planner_result["overall_summary"])
 
-    st.subheader("6-Dimension Score Breakdown")
     score_df = pd.DataFrame(
         {
-            "Dimension": [
-                "Emergency",
-                "Insurance",
-                "Diversification",
-                "Debt",
-                "Tax",
-                "Retirement",
-            ],
+            "Dimension": ["Emergency", "Insurance", "Diversification", "Debt", "Tax", "Retirement"],
             "Score": [
-                result["dimension_scores"]["emergency_preparedness"],
-                result["dimension_scores"]["insurance_coverage"],
-                result["dimension_scores"]["investment_diversification"],
-                result["dimension_scores"]["debt_health"],
-                result["dimension_scores"]["tax_efficiency"],
-                result["dimension_scores"]["retirement_readiness"],
+                planner_result["dimension_scores"]["emergency_preparedness"],
+                planner_result["dimension_scores"]["insurance_coverage"],
+                planner_result["dimension_scores"]["investment_diversification"],
+                planner_result["dimension_scores"]["debt_health"],
+                planner_result["dimension_scores"]["tax_efficiency"],
+                planner_result["dimension_scores"]["retirement_readiness"],
             ],
         }
     )
-
     st.bar_chart(score_df.set_index("Dimension"))
 
-    summary_map = result["dimension_summary"]
-
-    c1, c2 = st.columns(2)
-    with c1:
-        st.markdown("### Emergency Preparedness")
-        st.write(f"**Score:** {result['dimension_scores']['emergency_preparedness']} ({summary_map['emergency_preparedness']['score_band']})")
-        st.write(summary_map["emergency_preparedness"]["explanation"])
-
-        st.markdown("### Investment Diversification")
-        st.write(f"**Score:** {result['dimension_scores']['investment_diversification']} ({summary_map['investment_diversification']['score_band']})")
-        st.write(summary_map["investment_diversification"]["explanation"])
-
-        st.markdown("### Tax Efficiency")
-        st.write(f"**Score:** {result['dimension_scores']['tax_efficiency']} ({summary_map['tax_efficiency']['score_band']})")
-        st.write(summary_map["tax_efficiency"]["explanation"])
-
-    with c2:
-        st.markdown("### Insurance Coverage")
-        st.write(f"**Score:** {result['dimension_scores']['insurance_coverage']} ({summary_map['insurance_coverage']['score_band']})")
-        st.write(summary_map["insurance_coverage"]["explanation"])
-
-        st.markdown("### Debt Health")
-        st.write(f"**Score:** {result['dimension_scores']['debt_health']} ({summary_map['debt_health']['score_band']})")
-        st.write(summary_map["debt_health"]["explanation"])
-
-        st.markdown("### Retirement Readiness")
-        st.write(f"**Score:** {result['dimension_scores']['retirement_readiness']} ({summary_map['retirement_readiness']['score_band']})")
-        st.write(summary_map["retirement_readiness"]["explanation"])
-
-    st.subheader("FIRE Projection")
-    fp = result["fire_projection"]
+    fp = planner_result["fire_projection"]
     f1, f2, f3, f4 = st.columns(4)
     f1.metric("Years to Retirement", fp["years_to_retirement"])
     f2.metric("Target Corpus", format_inr(fp["target_corpus"]))
     f3.metric("Projected Corpus", format_inr(fp["projected_corpus"]))
-    f4.metric("Retirement Gap", format_inr(fp["gap"]))
+    f4.metric("Gap", format_inr(fp["gap"]))
 
     st.metric("Suggested Monthly SIP", format_inr(fp["recommended_monthly_sip"]))
 
     st.subheader("Top Recommendations")
-    for i, rec in enumerate(result["top_recommendations"], start=1):
+    for i, rec in enumerate(planner_result["top_recommendations"], start=1):
         st.success(f"{i}. {rec}")
-else:
-    st.write("Fill the profile from the sidebar and click **Analyze Profile**.")
+
+with tab2:
+    st.subheader("Portfolio X-Ray")
+
+    uploaded_file = st.file_uploader("Upload Portfolio PDF", type=["pdf"])
+
+    demo_holdings = [
+        {"fund_name": "Axis Bluechip Fund", "invested": 120000, "current_value": 145000, "expense_ratio": 1.6},
+        {"fund_name": "Parag Parikh Flexi Cap", "invested": 100000, "current_value": 130000, "expense_ratio": 1.5},
+        {"fund_name": "HDFC Short Term Debt Fund", "invested": 80000, "current_value": 86000, "expense_ratio": 0.8},
+    ]
+
+    if st.button("Run Demo Portfolio X-Ray"):
+        st.session_state["portfolio_result"] = portfolio_agent.analyze_holdings(demo_holdings)
+
+    if uploaded_file is not None:
+        st.session_state["portfolio_result"] = portfolio_agent.analyze_uploaded_pdf(uploaded_file)
+
+    portfolio_result = st.session_state["portfolio_result"]
+
+    if portfolio_result:
+        totals = portfolio_result["totals"]
+        p1, p2, p3, p4 = st.columns(4)
+        p1.metric("Total Invested", format_inr(totals["total_invested"]))
+        p2.metric("Current Value", format_inr(totals["total_current_value"]))
+        p3.metric("Gain / Loss", format_inr(totals["gain_loss"]))
+        p4.metric("Absolute Return %", f"{totals['absolute_return_pct']}%")
+
+        st.metric("Weighted Expense Ratio", f"{portfolio_result['weighted_expense_ratio']}%")
+        st.dataframe(pd.DataFrame(portfolio_result["holdings"]))
+        st.dataframe(pd.DataFrame(portfolio_result["concentration"]))
+
+        for flag in portfolio_result["risk_flags"]:
+            st.warning(flag)
+
+        for rec in portfolio_result["recommendations"]:
+            st.success(rec)
+
+with tab3:
+    st.subheader("Unified AI Mentor Summary")
+
+    portfolio_result = st.session_state.get("portfolio_result")
+
+    mentor_summary = explainer_agent.generate_mentor_summary(
+        planner_result=planner_result,
+        portfolio_result=portfolio_result,
+    )
+
+    st.info(mentor_summary)
+
+    st.markdown("### Scenario Analysis")
+    extra_sip = st.slider("Increase SIP by", min_value=0, max_value=50000, value=5000, step=1000)
+    delayed_retirement_age = st.slider("Alternative Retirement Age", min_value=profile["age"] + 1, max_value=80, value=55)
+
+    scenario_profile = profile.copy()
+    scenario_profile["monthly_sip"] = profile["monthly_sip"] + extra_sip
+    scenario_profile["retirement_age_goal"] = delayed_retirement_age
+
+    scenario_projection = calculate_fire_projection(scenario_profile)
+
+    st.write("#### Base vs Scenario")
+    s1, s2, s3 = st.columns(3)
+    s1.metric("Base Gap", format_inr(planner_result["fire_projection"]["gap"]))
+    s2.metric("Scenario Gap", format_inr(scenario_projection["gap"]))
+    s3.metric("Scenario SIP", format_inr(scenario_projection["recommended_monthly_sip"]))
+
+    scenario_text = explainer_agent.compare_scenarios(
+        base_projection=planner_result["fire_projection"],
+        new_projection=scenario_projection,
+    )
+    st.success(scenario_text)
