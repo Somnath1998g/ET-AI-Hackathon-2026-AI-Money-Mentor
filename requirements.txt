@@ -9,3 +9,4 @@ groq
 openai
 scipy
 litellm
+pydantic
