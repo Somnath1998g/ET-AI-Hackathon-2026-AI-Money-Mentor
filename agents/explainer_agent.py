@@ -47,6 +47,34 @@ class ExplainerAgent:
             return f"Your projected retirement corpus currently covers about {gap_ratio * 100:.1f}% of your estimated target corpus."
 
         return "This score reflects your current financial profile."
+    def generate_portfolio_rebalancing_plan(self, portfolio_result: Dict[str, Any]) -> str:
+        prompt = f"""
+        You are a mutual fund portfolio mentor for an Indian investor.
+
+        Use only this data:
+        {portfolio_result}
+
+        Write:
+        1. A short portfolio diagnosis
+        2. Key issues in allocation / concentration / cost / underperformance
+        3. A practical rebalancing plan aligned to the user's risk preference
+        4. Keep the tone simple and actionable
+        """
+
+        if self.llm.is_available():
+            return self.llm.generate_text(prompt)
+
+        flags = portfolio_result.get("risk_flags", [])
+        benchmark = portfolio_result.get("benchmark", {})
+        risk = portfolio_result.get("risk_preference", "Moderate")
+
+        text = f"Risk preference: {risk}. "
+        if flags:
+            text += "Key portfolio issues: " + " ".join(flags[:3]) + " "
+        if benchmark:
+            text += f"Benchmark status: {benchmark.get('status', 'Unknown')} with alpha of {benchmark.get('alpha', 0)}%. "
+        text += "Suggested action: reduce over-concentration, review expensive funds, and align equity-debt allocation to your risk profile."
+        return text
 
     def build_score_summary(
         self,

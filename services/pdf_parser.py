@@ -1,5 +1,6 @@
 import pdfplumber
 from typing import List, Dict, Any
+from datetime import date
 
 
 def extract_text_from_pdf(uploaded_file) -> str:
@@ -19,24 +20,32 @@ def extract_lines_from_pdf(uploaded_file) -> List[str]:
 
 def parse_sample_portfolio(lines: List[str]) -> List[Dict[str, Any]]:
     """
-    Day 3 simplified parser.
-    Replace this later with real CAMS/KFintech parsing logic.
-    Expected mock line format:
-    Fund Name | Invested | Current Value | Expense Ratio
+    Expected line format:
+    Scheme Name | Asset Class | Invested | Current Value | Expense Ratio
     """
     holdings = []
+    today = str(date.today())
 
     for line in lines:
         parts = [p.strip() for p in line.split("|")]
-        if len(parts) == 4:
-            fund_name, invested, current_value, expense_ratio = parts
+        if len(parts) == 5:
+            scheme_name, asset_class, invested, current_value, expense_ratio = parts
             try:
+                invested_amount = float(invested)
+                current_val = float(current_value)
+                expense = float(expense_ratio)
+
                 holdings.append(
                     {
-                        "fund_name": fund_name,
-                        "invested": float(invested),
-                        "current_value": float(current_value),
-                        "expense_ratio": float(expense_ratio),
+                        "scheme_name": scheme_name,
+                        "asset_class": asset_class,
+                        "invested_amount": invested_amount,
+                        "current_value": current_val,
+                        "expense_ratio": expense,
+                        "transactions": [
+                            {"date": "2024-01-01", "amount": -invested_amount},
+                            {"date": today, "amount": current_val},
+                        ],
                     }
                 )
             except ValueError:
