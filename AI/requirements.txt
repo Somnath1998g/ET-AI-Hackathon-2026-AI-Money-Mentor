@@ -10,3 +10,5 @@ openai
 scipy
 litellm
 pydantic
+uvicorn
+fastapi
