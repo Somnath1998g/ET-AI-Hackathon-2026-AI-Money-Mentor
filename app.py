@@ -1,5 +1,7 @@
 import pandas as pd
 import streamlit as st
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 from agents.planner_agent import PlannerAgent
 from agents.portfolio_agent import PortfolioAgent
@@ -19,6 +21,177 @@ explainer_agent = ExplainerAgent()
 def format_inr(value: float) -> str:
     return f"Rs. {value:,.0f}"
 
+def build_overall_score_gauge(overall_score: int):
+    fig = go.Figure(
+        go.Indicator(
+            mode="gauge+number",
+            value=overall_score,
+            title={"text": "Overall Money Health Score"},
+            number={"suffix": "/100"},
+            gauge={
+                "axis": {"range": [0, 100]},
+                "bar": {"thickness": 0.3},
+                "steps": [
+                    {"range": [0, 40], "color": "#ffcccc"},
+                    {"range": [40, 60], "color": "#ffe5b4"},
+                    {"range": [60, 80], "color": "#fff4b3"},
+                    {"range": [80, 100], "color": "#d8f3dc"},
+                ],
+            },
+        )
+    )
+    fig.update_layout(height=320, margin=dict(l=20, r=20, t=50, b=20))
+    return fig
+
+def build_combined_score_bar(dashboard_scores: dict):
+    df = pd.DataFrame({
+        "Metric": list(dashboard_scores.keys()),
+        "Score": list(dashboard_scores.values()),
+    })
+    fig = go.Figure()
+    fig.add_trace(go.Bar(x=df["Metric"], y=df["Score"], name="Score"))
+    fig.update_layout(height=350, yaxis=dict(range=[0, 100]), margin=dict(l=30, r=30, t=40, b=30))
+    return fig
+
+
+def build_status_bar_chart(strength_count: int, risk_count: int, priority_count: int):
+    fig = go.Figure()
+    fig.add_trace(
+        go.Bar(
+            x=[strength_count, risk_count, priority_count],
+            y=["Strengths", "Risks", "Priority Areas"],
+            orientation="h",
+        )
+    )
+    fig.update_layout(height=300, margin=dict(l=30, r=30, t=30, b=30))
+    return fig
+
+
+def build_priority_actions_chart(priority_actions: list):
+    if not priority_actions:
+        return go.Figure()
+
+    df = pd.DataFrame(priority_actions, columns=["Action", "Priority Score"])
+    fig = go.Figure()
+    fig.add_trace(go.Bar(x=df["Priority Score"], y=df["Action"], orientation="h"))
+    fig.update_layout(height=380, margin=dict(l=30, r=30, t=40, b=30))
+    return fig
+
+
+def build_before_after_chart(rows: list):
+    df = pd.DataFrame(rows)
+    fig = go.Figure()
+    fig.add_trace(go.Bar(x=df["metric"], y=df["current"], name="Current"))
+    fig.add_trace(go.Bar(x=df["metric"], y=df["projected"], name="Projected"))
+    fig.update_layout(barmode="group", height=360, yaxis=dict(range=[0, 100]), margin=dict(l=30, r=30, t=40, b=30))
+    return fig
+
+
+def build_roadmap_timeline_chart(roadmap_rows: list):
+    df = pd.DataFrame(roadmap_rows)
+    df["step"] = [1, 2, 3]
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=df["step"],
+        y=[1, 1, 1],
+        mode="lines+markers+text",
+        text=df["timeline"],
+        textposition="top center",
+    ))
+    fig.update_layout(
+        height=250,
+        xaxis=dict(showticklabels=False),
+        yaxis=dict(showticklabels=False, visible=False),
+        margin=dict(l=20, r=20, t=40, b=20),
+    )
+    return fig
+
+def build_dimension_radar_chart(dimension_scores: dict):
+    labels = [
+        "Emergency",
+        "Insurance",
+        "Diversification",
+        "Debt",
+        "Tax",
+        "Retirement",
+    ]
+    values = [
+        dimension_scores["emergency_preparedness"],
+        dimension_scores["insurance_coverage"],
+        dimension_scores["investment_diversification"],
+        dimension_scores["debt_health"],
+        dimension_scores["tax_efficiency"],
+        dimension_scores["retirement_readiness"],
+    ]
+
+    labels_closed = labels + [labels[0]]
+    values_closed = values + [values[0]]
+
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatterpolar(
+            r=values_closed,
+            theta=labels_closed,
+            fill="toself",
+            name="Current Score",
+        )
+    )
+    fig.update_layout(
+        polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
+        showlegend=False,
+        height=420,
+        margin=dict(l=30, r=30, t=40, b=30),
+    )
+    return fig
+
+
+def build_current_vs_ideal_chart(dimension_scores: dict):
+    chart_df = pd.DataFrame(
+        {
+            "Dimension": [
+                "Emergency",
+                "Insurance",
+                "Diversification",
+                "Debt",
+                "Tax",
+                "Retirement",
+            ],
+            "Current Score": [
+                dimension_scores["emergency_preparedness"],
+                dimension_scores["insurance_coverage"],
+                dimension_scores["investment_diversification"],
+                dimension_scores["debt_health"],
+                dimension_scores["tax_efficiency"],
+                dimension_scores["retirement_readiness"],
+            ],
+            "Ideal Score": [100, 100, 100, 100, 100, 100],
+        }
+    )
+
+    fig = go.Figure()
+    fig.add_trace(
+        go.Bar(
+            x=chart_df["Dimension"],
+            y=chart_df["Current Score"],
+            name="Current Score",
+        )
+    )
+    fig.add_trace(
+        go.Bar(
+            x=chart_df["Dimension"],
+            y=chart_df["Ideal Score"],
+            name="Ideal Score",
+            opacity=0.45,
+        )
+    )
+
+    fig.update_layout(
+        barmode="group",
+        height=420,
+        yaxis=dict(range=[0, 100]),
+        margin=dict(l=30, r=30, t=40, b=30),
+    )
+    return fig
 
 tab1, tab2, tab3, tab4 = st.tabs([
     "Money Health Score",
@@ -82,39 +255,56 @@ if "portfolio_result" not in st.session_state:
 planner_result = planner_agent.analyze_profile(profile)
 
 with tab1:
-    st.subheader("Overall Financial Health")
-    c1, c2 = st.columns([1, 2])
-    with c1:
-        st.metric("Money Health Score", planner_result["overall_score"])
-    with c2:
+    st.subheader("Money Health Score")
+
+    dimension_scores = planner_result["dimension_scores"]
+    overall_score = planner_result["overall_score"]
+    recommendations = planner_result["top_recommendations"]
+
+    score_labels = {
+        "emergency_preparedness": "Emergency Preparedness",
+        "insurance_coverage": "Insurance Coverage",
+        "investment_diversification": "Investment Diversification",
+        "debt_health": "Debt Health",
+        "tax_efficiency": "Tax Efficiency",
+        "retirement_readiness": "Retirement Readiness",
+    }
+
+    st.markdown("### Overall Score")
+    top_left, top_right = st.columns([1, 1.4])
+
+    with top_left:
+        st.metric("Overall Money Health Score", overall_score)
         st.info(planner_result["overall_summary"])
 
-    score_df = pd.DataFrame(
-        {
-            "Dimension": ["Emergency", "Insurance", "Diversification", "Debt", "Tax", "Retirement"],
-            "Score": [
-                planner_result["dimension_scores"]["emergency_preparedness"],
-                planner_result["dimension_scores"]["insurance_coverage"],
-                planner_result["dimension_scores"]["investment_diversification"],
-                planner_result["dimension_scores"]["debt_health"],
-                planner_result["dimension_scores"]["tax_efficiency"],
-                planner_result["dimension_scores"]["retirement_readiness"],
-            ],
-        }
-    )
-    st.bar_chart(score_df.set_index("Dimension"))
+    with top_right:
+        gauge_fig = build_overall_score_gauge(overall_score)
+        st.plotly_chart(gauge_fig, use_container_width=True)
 
-    fp = planner_result["fire_projection"]
-    f1, f2, f3, f4 = st.columns(4)
-    f1.metric("Years to Retirement", fp["years_to_retirement"])
-    f2.metric("Target Corpus", format_inr(fp["target_corpus"]))
-    f3.metric("Projected Corpus", format_inr(fp["projected_corpus"]))
-    f4.metric("Gap", format_inr(fp["gap"]))
+    st.markdown("### 6 Dimension Scores")
+    d1, d2, d3 = st.columns(3)
+    d4, d5, d6 = st.columns(3)
 
-    st.metric("Suggested Monthly SIP", format_inr(fp["recommended_monthly_sip"]))
+    score_items = list(dimension_scores.items())
+    cols = [d1, d2, d3, d4, d5, d6]
 
-    st.subheader("Top Recommendations")
-    for i, rec in enumerate(planner_result["top_recommendations"], start=1):
+    for col, (key, value) in zip(cols, score_items):
+        with col:
+            st.metric(score_labels[key], value)
+
+    st.markdown("### Score Visuals")
+    vis_left, vis_right = st.columns(2)
+
+    with vis_left:
+        radar_fig = build_dimension_radar_chart(dimension_scores)
+        st.plotly_chart(radar_fig, use_container_width=True)
+
+    with vis_right:
+        compare_fig = build_current_vs_ideal_chart(dimension_scores)
+        st.plotly_chart(compare_fig, use_container_width=True)
+
+    st.markdown("### Key Improvement Recommendations")
+    for i, rec in enumerate(recommendations, start=1):
         st.success(f"{i}. {rec}")
 
 with tab2:
@@ -309,11 +499,79 @@ with tab4:
         portfolio_result=portfolio_result,
     )
 
-    st.info(mentor_summary)
+    analysis = explainer_agent.extract_strengths_and_risks(
+        planner_result=planner_result,
+        portfolio_result=portfolio_result,
+    )
+
+    action_plan = explainer_agent.build_personalized_action_plan(
+        planner_result=planner_result,
+        portfolio_result=portfolio_result,
+    )
+
+    combined_scores = explainer_agent.build_combined_score_dashboard(
+        planner_result=planner_result,
+        portfolio_result=portfolio_result,
+    )
+
+    before_after = explainer_agent.build_before_after_projection(
+        planner_result=planner_result,
+        portfolio_result=portfolio_result,
+    )
+
+    roadmap = explainer_agent.build_roadmap()
+
+    st.markdown("### Personalized Action Plan")
+    left1, right1 = st.columns([1.2, 1])
+    with left1:
+        st.info(mentor_summary)
+        for i, item in enumerate(action_plan, start=1):
+            st.success(f"{i}. {item}")
+    with right1:
+        st.markdown("### Key Strengths")
+        for s in analysis["strengths"]:
+            st.success(s)
+
+        st.markdown("### Key Risks / Gaps")
+        for r in analysis["risks"]:
+            st.warning(r)
+
+    st.markdown("### Combined Score Dashboard")
+    score_fig = build_combined_score_bar(combined_scores)
+    st.plotly_chart(score_fig, use_container_width=True)
+
+    st.markdown("### Strengths vs Risks vs Priority Areas")
+    status_fig = build_status_bar_chart(
+        strength_count=len(analysis["strengths"]),
+        risk_count=len(analysis["risks"]),
+        priority_count=len(analysis["priority_actions"]),
+    )
+    st.plotly_chart(status_fig, use_container_width=True)
+
+    st.markdown("### Priority Ranking")
+    priority_fig = build_priority_actions_chart(analysis["priority_actions"])
+    st.plotly_chart(priority_fig, use_container_width=True)
+
+    st.markdown("### Before vs After Comparison")
+    before_after_fig = build_before_after_chart(before_after)
+    st.plotly_chart(before_after_fig, use_container_width=True)
+
+    st.markdown("### Roadmap")
+    roadmap_fig = build_roadmap_timeline_chart(roadmap)
+    st.plotly_chart(roadmap_fig, use_container_width=True)
+
+    roadmap_df = pd.DataFrame(roadmap)
+    st.dataframe(roadmap_df)
 
     st.markdown("### Scenario Analysis")
-    extra_sip = st.slider("Increase SIP by", min_value=0, max_value=50000, value=5000, step=1000)
-    delayed_retirement_age = st.slider("Alternative Retirement Age", min_value=profile["age"] + 1, max_value=80, value=55)
+    extra_sip = st.slider("Increase SIP by", min_value=0, max_value=50000, value=5000, step=1000, key="mentor_sip")
+    delayed_retirement_age = st.slider(
+        "Alternative Retirement Age",
+        min_value=profile["age"] + 1,
+        max_value=80,
+        value=55,
+        key="mentor_ret_age",
+    )
 
     scenario_profile = profile.copy()
     scenario_profile["monthly_sip"] = profile["monthly_sip"] + extra_sip
@@ -321,7 +579,6 @@ with tab4:
 
     scenario_projection = calculate_fire_projection(scenario_profile)
 
-    st.write("#### Base vs Scenario")
     s1, s2, s3 = st.columns(3)
     s1.metric("Base Gap", format_inr(planner_result["fire_projection"]["gap"]))
     s2.metric("Scenario Gap", format_inr(scenario_projection["gap"]))

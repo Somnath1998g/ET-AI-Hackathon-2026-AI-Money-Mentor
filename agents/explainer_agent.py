@@ -1,4 +1,4 @@
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 from services.llm_client import LLMClient
 
@@ -123,6 +123,159 @@ class ExplainerAgent:
 
         return " ".join(summary_parts)
 
+    def extract_strengths_and_risks(
+        self,
+        planner_result: Dict[str, Any],
+        portfolio_result: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        strengths = []
+        risks = []
+        priorities = []
+
+        ds = planner_result["dimension_scores"]
+
+        if ds["emergency_preparedness"] >= 70:
+            strengths.append("Healthy emergency preparedness.")
+        else:
+            risks.append("Emergency fund is below ideal safety level.")
+            priorities.append(("Build emergency fund", 95))
+
+        if ds["insurance_coverage"] >= 70:
+            strengths.append("Insurance coverage is reasonably aligned.")
+        else:
+            risks.append("Insurance coverage gap may expose long-term goals.")
+            priorities.append(("Improve insurance", 85))
+
+        if ds["debt_health"] >= 70:
+            strengths.append("Debt burden is under reasonable control.")
+        else:
+            risks.append("Debt burden or credit rollover is hurting financial health.")
+            priorities.append(("Reduce debt / EMI pressure", 90))
+
+        if ds["tax_efficiency"] >= 70:
+            strengths.append("Tax-saving usage is reasonably efficient.")
+        else:
+            risks.append("Tax-saving opportunities are underutilized.")
+            priorities.append(("Improve tax-saving allocation", 65))
+
+        if ds["retirement_readiness"] >= 70:
+            strengths.append("Retirement planning is on a relatively strong track.")
+        else:
+            risks.append("Retirement corpus is below target trajectory.")
+            priorities.append(("Increase SIP for retirement", 92))
+
+        if ds["investment_diversification"] >= 70:
+            strengths.append("Investment mix is reasonably diversified.")
+        else:
+            risks.append("Investment diversification is weak or concentrated.")
+            priorities.append(("Improve diversification", 70))
+
+        if portfolio_result:
+            for flag in portfolio_result.get("risk_flags", []):
+                risks.append(flag)
+
+            concentration = portfolio_result.get("concentration", [])
+            if concentration and concentration[0]["weight_pct"] > 50:
+                priorities.append(("Reduce portfolio concentration", 88))
+
+            benchmark = portfolio_result.get("benchmark_comparison", {})
+            if benchmark and benchmark.get("alpha", 0) < 0:
+                priorities.append(("Improve portfolio performance vs benchmark", 72))
+
+        priorities = sorted(priorities, key=lambda x: x[1], reverse=True)
+
+        return {
+            "strengths": strengths[:5],
+            "risks": risks[:6],
+            "priority_actions": priorities[:6],
+        }
+
+
+    def build_personalized_action_plan(
+        self,
+        planner_result: Dict[str, Any],
+        portfolio_result: Optional[Dict[str, Any]] = None,
+    ) -> List[str]:
+        items = []
+        for rec in planner_result.get("top_recommendations", []):
+            items.append(rec)
+
+        if portfolio_result:
+            for flag in portfolio_result.get("risk_flags", []):
+                if "concentrated" in flag.lower():
+                    items.append("Gradually rebalance away from concentrated portfolio positions.")
+                if "expense ratio" in flag.lower():
+                    items.append("Review high-cost funds and compare with lower-cost alternatives.")
+                if "underperforming" in flag.lower():
+                    items.append("Review whether current fund mix matches benchmark and goals.")
+
+        deduped = []
+        for item in items:
+            if item not in deduped:
+                deduped.append(item)
+
+        return deduped[:6]
+
+
+    def build_combined_score_dashboard(
+        self,
+        planner_result: Dict[str, Any],
+        portfolio_result: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, float]:
+        money_health = planner_result["overall_score"]
+        fire_readiness = planner_result["dimension_scores"]["retirement_readiness"]
+
+        portfolio_health = 65.0
+        if portfolio_result:
+            portfolio_health = 100.0
+            if len(portfolio_result.get("risk_flags", [])) >= 3:
+                portfolio_health -= 30
+            elif len(portfolio_result.get("risk_flags", [])) >= 1:
+                portfolio_health -= 15
+
+            weighted_er = portfolio_result.get("weighted_expense_ratio", 0)
+            if weighted_er > 1.5:
+                portfolio_health -= 10
+
+            benchmark = portfolio_result.get("benchmark_comparison", {})
+            if benchmark.get("alpha", 0) < 0:
+                portfolio_health -= 10
+
+            portfolio_health = max(0, round(portfolio_health, 2))
+
+        return {
+            "Money Health Score": money_health,
+            "FIRE Readiness": fire_readiness,
+            "Portfolio Health": portfolio_health,
+        }
+
+
+    def build_before_after_projection(
+        self,
+        planner_result: Dict[str, Any],
+        portfolio_result: Optional[Dict[str, Any]] = None,
+    ) -> List[Dict[str, Any]]:
+        current_money = planner_result["overall_score"]
+        current_fire = planner_result["dimension_scores"]["retirement_readiness"]
+        current_portfolio = self.build_combined_score_dashboard(planner_result, portfolio_result)["Portfolio Health"]
+
+        improved_money = min(current_money + 18, 100)
+        improved_fire = min(current_fire + 20, 100)
+        improved_portfolio = min(current_portfolio + 15, 100)
+
+        return [
+            {"metric": "Money Health Score", "current": current_money, "projected": improved_money},
+            {"metric": "FIRE Readiness", "current": current_fire, "projected": improved_fire},
+            {"metric": "Portfolio Health", "current": current_portfolio, "projected": improved_portfolio},
+        ]
+
+
+    def build_roadmap(self) -> List[Dict[str, str]]:
+        return [
+            {"timeline": "Next 3 Months", "action": "Build emergency fund discipline, review insurance, reduce high-cost debt."},
+            {"timeline": "Next 6 Months", "action": "Increase SIP, optimize tax-saving allocation, improve diversification."},
+            {"timeline": "Next 12 Months", "action": "Rebalance portfolio, track benchmark performance, move closer to FIRE target."},
+        ]
     def build_llm_prompt(
         self,
         planner_result: Dict[str, Any],
