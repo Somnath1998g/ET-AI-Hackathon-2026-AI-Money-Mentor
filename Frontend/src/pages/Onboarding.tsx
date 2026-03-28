@@ -1,11 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowRight, ArrowLeft, Sparkles, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { fetchMoneyHealthScore } from "@/services/api";
+import {
+  fetchMoneyHealthScore,
+  fetchFirePathPlanner,
+  fetchAiMentorSummary,
+} from "@/services/api";
+import { saveUserData, getUserData } from "@/utils/userStorage";
 
 interface FormData {
   age: string;
@@ -34,12 +39,18 @@ interface FormData {
 
 const steps = ["Basics", "Protection", "Investments", "Goals"];
 
-const API_BASE_URL = "http://127.0.0.1:8000";
 
 export default function Onboarding() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  useEffect(() => {
+  if (!user?.email) return;
 
+  const existing = getUserData(user.email);
+  if (existing?.profileForm) {
+    setForm(existing.profileForm);
+  }
+}, [user]);
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
 
@@ -122,26 +133,39 @@ export default function Onboarding() {
     return true;
   };
 
-  const handleSubmit = async () => {
-    try {
-      setLoading(true);
-
-      const payload = buildPayload();
-
-      const result = await fetchMoneyHealthScore(payload);
-
-      localStorage.setItem("onboarding", JSON.stringify(form));
-      localStorage.setItem("moneyHealthPayload", JSON.stringify(payload));
-      localStorage.setItem("moneyHealthResult", JSON.stringify(result));
-
-      navigate("/dashboard");
-    } catch (error) {
-      console.error("API error:", error);
-      alert(error instanceof Error ? error.message : "Something went wrong");
-    } finally {
-      setLoading(false);
+const handleSubmit = async () => {
+  try {
+    if (!user?.email) {
+      alert("User not found");
+      return;
     }
-  };
+
+    setLoading(true);
+
+    const payload = buildPayload();
+
+    const [moneyHealthResult, firePlanResult, mentorSummaryResult] = await Promise.all([
+      fetchMoneyHealthScore(payload),
+      fetchFirePathPlanner(payload),
+      fetchAiMentorSummary(payload),
+    ]);
+
+    saveUserData(user.email, {
+      profileForm: form,
+      profilePayload: payload,
+      moneyHealthResult,
+      firePlanResult,
+      mentorSummaryResult,
+    });
+
+    navigate("/dashboard");
+  } catch (error) {
+    console.error("API error:", error);
+    alert(error instanceof Error ? error.message : "Something went wrong");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const next = () => {
     if (!validateStep()) {

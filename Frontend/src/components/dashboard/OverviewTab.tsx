@@ -4,6 +4,9 @@ import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
 } from "recharts";
+import { useAuth } from "@/contexts/AuthContext";
+import { getUserData } from "@/utils/userStorage";
+import { useUserData } from "@/hooks/useUserData";
 
 function getScoreColor(score: number) {
   if (score >= 70) return "text-accent";
@@ -48,8 +51,9 @@ function getIdealScore(key: string) {
 }
 
 export default function OverviewTab() {
-  const result = JSON.parse(localStorage.getItem("moneyHealthResult") || "null");
-  const data = result?.data;
+  const { user } = useAuth();
+  const userData = useUserData(user?.email);
+  const data = userData?.moneyHealthResult?.data;
 
   const overallScore = data?.overall_score ?? 0;
   const overallSummary = data?.overall_summary ?? "No assessment available.";

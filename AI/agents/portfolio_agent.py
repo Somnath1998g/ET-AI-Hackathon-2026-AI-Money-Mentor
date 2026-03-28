@@ -37,6 +37,33 @@ class PortfolioAgent:
         benchmark_return: float = 12.0,
         risk_preference: str = "Moderate",
     ) -> Dict[str, Any]:
+        if not holdings:
+            return {
+                "holdings": [],
+                "totals": {
+                    "total_invested": 0.0,
+                    "total_current_value": 0.0,
+                    "gain_loss": 0.0,
+                    "absolute_return_pct": 0.0,
+                },
+                "portfolio_xirr": 0.0,
+                "weighted_expense_ratio": 0.0,
+                "expense_drag": 0.0,
+                "concentration": [],
+                "overlap": [],
+                "benchmark_comparison": {
+                    "portfolio_xirr": 0.0,
+                    "benchmark_return": benchmark_return,
+                    "alpha": round(0.0 - benchmark_return, 2),
+                    "status": "No Data",
+                },
+                "risk_flags": ["No holdings could be parsed from the uploaded PDF. Check the parser format."],
+                "ai_rebalancing_plan": "No portfolio analysis could be generated because the uploaded PDF was not parsed into valid holdings.",
+                "category_allocation": [],
+                "expense_drag_by_fund": [],
+                "portfolio_vs_benchmark": [],
+            }
+
         totals = calculate_portfolio_totals(holdings)
         portfolio_xirr = calculate_portfolio_xirr(holdings)
         weighted_expense_ratio = calculate_weighted_expense_ratio(holdings)

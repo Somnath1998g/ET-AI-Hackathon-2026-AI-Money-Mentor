@@ -28,17 +28,58 @@ export interface MoneyHealthPayload {
 export async function fetchMoneyHealthScore(payload: MoneyHealthPayload) {
   const response = await fetch(`${API_BASE_URL}/money-health-score`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
 
   const result = await response.json();
+  if (!response.ok) throw new Error(result?.detail || "Failed to fetch Money Health Score");
+  return result;
+}
 
-  if (!response.ok) {
-    throw new Error(result?.detail || "Failed to fetch Money Health Score");
-  }
+export async function fetchFirePathPlanner(payload: MoneyHealthPayload) {
+  const response = await fetch(`${API_BASE_URL}/fire-path-planner`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
 
+  const result = await response.json();
+  if (!response.ok) throw new Error(result?.detail || "Failed to fetch FIRE Path Planner");
+  return result;
+}
+
+export async function fetchAiMentorSummary(payload: MoneyHealthPayload, portfolio?: any) {
+  const response = await fetch(`${API_BASE_URL}/ai-mentor-summary`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      profile: payload,
+      ...(portfolio ? { portfolio } : {}),
+    }),
+  });
+
+  const result = await response.json();
+  if (!response.ok) throw new Error(result?.detail || "Failed to fetch AI Mentor Summary");
+  return result;
+}
+
+export async function fetchScenarioAnalysis(
+  payload: MoneyHealthPayload,
+  extra_sip: number,
+  alternative_retirement_age: number
+) {
+  const response = await fetch(`${API_BASE_URL}/scenario-analysis`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      profile: payload,
+      extra_sip,
+      alternative_retirement_age,
+    }),
+  });
+
+  const result = await response.json();
+  if (!response.ok) throw new Error(result?.detail || "Failed to fetch Scenario Analysis");
   return result;
 }
