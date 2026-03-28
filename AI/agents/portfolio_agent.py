@@ -1,5 +1,5 @@
 from typing import Dict, Any, List
-
+from datetime import date
 from services.pdf_parser import extract_lines_from_pdf, parse_sample_portfolio
 from engines.xirr import (
     calculate_portfolio_xirr,
@@ -21,7 +21,7 @@ class PortfolioAgent:
         self,
         uploaded_file,
         benchmark_return: float = 12.0,
-        risk_preference: str = "Moderate",
+        risk_preference: str = "moderate",
     ) -> Dict[str, Any]:
         lines = extract_lines_from_pdf(uploaded_file)
         holdings = parse_sample_portfolio(lines)
@@ -30,13 +30,35 @@ class PortfolioAgent:
             benchmark_return=benchmark_return,
             risk_preference=risk_preference,
         )
+    
+    def normalize_holdings(self, holdings: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        today = str(date.today())
+        normalized = []
+
+        for h in holdings:
+            item = dict(h)
+
+            transactions = item.get("transactions")
+            if not transactions:
+                invested_amount = item.get("invested_amount", 0)
+                current_value = item.get("current_value", 0)
+                transactions = [
+                    {"date": "2024-01-01", "amount": -invested_amount},
+                    {"date": today, "amount": current_value},
+                ]
+
+            item["transactions"] = transactions
+            normalized.append(item)
+
+        return normalized
 
     def analyze_holdings(
         self,
         holdings: List[Dict[str, Any]],
         benchmark_return: float = 12.0,
-        risk_preference: str = "Moderate",
+        risk_preference: str = "moderate",
     ) -> Dict[str, Any]:
+        holdings = self.normalize_holdings(holdings)
         if not holdings:
             return {
                 "holdings": [],

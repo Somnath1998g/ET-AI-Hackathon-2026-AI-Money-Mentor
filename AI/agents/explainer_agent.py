@@ -66,7 +66,7 @@ class ExplainerAgent:
 
         flags = portfolio_result.get("risk_flags", [])
         benchmark = portfolio_result.get("benchmark", {})
-        risk = portfolio_result.get("risk_preference", "Moderate")
+        risk = portfolio_result.get("risk_preference", "moderate")
 
         text = f"Risk preference: {risk}. "
         if flags:
