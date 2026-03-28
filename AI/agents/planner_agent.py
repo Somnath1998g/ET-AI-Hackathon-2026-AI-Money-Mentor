@@ -59,6 +59,7 @@ class PlannerAgent:
         }
 
         return {
+            "profile": profile,
             "overall_score": overall_score,
             "dimension_scores": dimension_scores,
             "dimension_summary": dimension_summary,

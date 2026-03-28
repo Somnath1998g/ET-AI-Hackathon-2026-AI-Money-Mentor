@@ -198,7 +198,15 @@ def ai_mentor_summary(payload: MentorSummaryRequest):
         planner_result=planner_result,
         portfolio_result=portfolio_result,
     )
-    roadmap = explainer_agent.build_roadmap()
+    next_30_days = explainer_agent.build_next_30_days(
+        planner_result=planner_result,
+        portfolio_result=portfolio_result,
+    )
+
+    roadmap = explainer_agent.build_roadmap(
+        planner_result=planner_result,
+        portfolio_result=portfolio_result,
+    )
 
     return {
         "success": True,
@@ -209,6 +217,7 @@ def ai_mentor_summary(payload: MentorSummaryRequest):
             "personalized_action_plan": action_plan,
             "combined_scores": combined_scores,
             "before_after_projection": before_after,
+            "next_30_days": next_30_days,
             "roadmap": roadmap,
         },
     }

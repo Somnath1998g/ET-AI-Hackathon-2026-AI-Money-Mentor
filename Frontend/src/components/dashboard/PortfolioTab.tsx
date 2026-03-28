@@ -650,8 +650,8 @@ export default function PortfolioTab() {
             <YAxis axisLine={false} tickLine={false} tickFormatter={(v) => `${(Number(v) / 1000).toFixed(0)}K`} />
             <Tooltip />
             <Legend wrapperStyle={{ fontSize: 12 }} />
-            <Bar dataKey="invested" name="Invested" radius={[4, 4, 0, 0]} barSize={24} />
-            <Bar dataKey="current" name="Current Value" radius={[4, 4, 0, 0]} barSize={24} />
+            <Bar dataKey="invested" name="Invested" fill="hsl(217, 91%, 60%)" radius={[4, 4, 0, 0]} barSize={24} />
+<Bar dataKey="current" name="Current Value" fill="hsl(160, 84%, 39%)" radius={[4, 4, 0, 0]} barSize={24} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -690,8 +690,8 @@ export default function PortfolioTab() {
             <YAxis axisLine={false} tickLine={false} tickFormatter={(v) => `${(Number(v) / 1000).toFixed(0)}K`} />
             <Tooltip />
             <Legend wrapperStyle={{ fontSize: 12 }} />
-            <Line type="monotone" dataKey="benchmark_value" name="Benchmark" strokeWidth={2} />
-            <Line type="monotone" dataKey="portfolio_value" name="Portfolio" strokeWidth={2} />
+            <Line type="monotone" dataKey="benchmark_value" name="Benchmark" stroke="hsl(217, 91%, 60%)" strokeWidth={2} />
+<Line type="monotone" dataKey="portfolio_value" name="Portfolio" stroke="hsl(160, 84%, 39%)" strokeWidth={2} />
           </LineChart>
         </ResponsiveContainer>
       </div>

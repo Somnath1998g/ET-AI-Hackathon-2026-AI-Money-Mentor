@@ -269,13 +269,152 @@ class ExplainerAgent:
             {"metric": "Portfolio Health", "current": current_portfolio, "projected": improved_portfolio},
         ]
 
+    def build_roadmap(
+        self,
+        planner_result: Dict[str, Any],
+        portfolio_result: Optional[Dict[str, Any]] = None,
+    ) -> List[Dict[str, str]]:
+        scores = planner_result.get("dimension_scores", {})
+        fire_projection = planner_result.get("fire_projection", {})
+        portfolio_flags = portfolio_result.get("risk_flags", []) if portfolio_result else []
 
-    def build_roadmap(self) -> List[Dict[str, str]]:
-        return [
-            {"timeline": "Next 3 Months", "action": "Build emergency fund discipline, review insurance, reduce high-cost debt."},
-            {"timeline": "Next 6 Months", "action": "Increase SIP, optimize tax-saving allocation, improve diversification."},
-            {"timeline": "Next 12 Months", "action": "Rebalance portfolio, track benchmark performance, move closer to FIRE target."},
-        ]
+        roadmap = []
+
+        if scores.get("emergency_preparedness", 100) < 70:
+            roadmap.append({
+                "timeline": "Next 3 Months",
+                "action": "Build your emergency fund toward at least 3 to 6 months of expenses and automate the monthly contribution."
+            })
+        else:
+            roadmap.append({
+                "timeline": "Next 3 Months",
+                "action": "Maintain savings discipline and monitor monthly cash flow consistency."
+            })
+
+        if scores.get("tax_efficiency", 100) < 70 or scores.get("investment_diversification", 100) < 70:
+            roadmap.append({
+                "timeline": "Next 6 Months",
+                "action": "Improve tax-saving allocation and strengthen diversification across asset classes."
+            })
+        else:
+            roadmap.append({
+                "timeline": "Next 6 Months",
+                "action": "Optimize allocation gradually and review progress against savings and investment goals."
+            })
+
+        if portfolio_flags or fire_projection.get("gap", 0) > 0:
+            roadmap.append({
+                "timeline": "Next 12 Months",
+                "action": "Track progress toward retirement goals, rebalance investments if needed, and increase SIP step by step."
+            })
+        else:
+            roadmap.append({
+                "timeline": "Next 12 Months",
+                "action": "Stay disciplined, review portfolio annually, and maintain alignment with long-term goals."
+            })
+
+        return roadmap
+
+    def build_next_30_days(
+        self,
+        planner_result: Dict[str, Any],
+        portfolio_result: Optional[Dict[str, Any]] = None,
+    ) -> List[Dict[str, str]]:
+        profile = planner_result.get("profile", {})
+        scores = planner_result.get("dimension_scores", {})
+        fire_projection = planner_result.get("fire_projection", {})
+        fire_plan = planner_result.get("fire_plan", {})
+
+        roadmap = []
+
+        monthly_expenses = max(profile.get("monthly_expenses", 0), 1)
+        liquid_savings = profile.get("liquid_savings", 0)
+        emergency_months = liquid_savings / monthly_expenses
+
+        insurance_gap = fire_plan.get("insurance_gap", {})
+        health_gap = insurance_gap.get("health_gap", 0)
+        term_gap = insurance_gap.get("term_gap", 0)
+
+        retirement_gap = fire_projection.get("gap", 0)
+        recommended_sip = fire_projection.get("recommended_monthly_sip", profile.get("monthly_sip", 0))
+
+        # Week 1-2
+        if emergency_months < 3:
+            roadmap.append({
+                "timeline": "Week 1-2",
+                "action": (
+                    f"Your emergency fund covers only about {emergency_months:.1f} months of expenses. "
+                    f"Start an auto-transfer to build this toward at least 3 to 6 months. "
+                    f"Target emergency corpus: Rs. {fire_plan.get('emergency_fund_target', 0):,.0f}."
+                )
+            })
+        elif scores.get("debt_health", 100) < 70:
+            roadmap.append({
+                "timeline": "Week 1-2",
+                "action": "Focus on reducing high-cost debt or credit card dues before increasing risky investments."
+            })
+        else:
+            roadmap.append({
+                "timeline": "Week 1-2",
+                "action": "Review your monthly cash flow and continue disciplined saving through a fixed monthly auto-transfer."
+            })
+
+        # Week 3
+        if health_gap > 0 or term_gap > 0:
+            roadmap.append({
+                "timeline": "Week 3",
+                "action": (
+                    f"Review your insurance coverage. "
+                    f"Health cover gap: Rs. {health_gap:,.0f}. "
+                    f"Term cover gap: Rs. {term_gap:,.0f}. "
+                    f"Compare current policies with recommended levels and begin closing the gap."
+                )
+            })
+        elif scores.get("tax_efficiency", 100) < 70:
+            roadmap.append({
+                "timeline": "Week 3",
+                "action": "Review EPF, PPF, ELSS, and NPS usage and improve tax-saving allocation for this financial year."
+            })
+        else:
+            roadmap.append({
+                "timeline": "Week 3",
+                "action": "Review protection and tax-saving setup to ensure your existing plan still matches your goals."
+            })
+
+        # Week 4
+        portfolio_flags = []
+        if portfolio_result:
+            portfolio_flags = portfolio_result.get("risk_flags", [])
+
+        if portfolio_flags:
+            roadmap.append({
+                "timeline": "Week 4",
+                "action": (
+                    "Review your portfolio for concentration, overlap, cost, and benchmark performance. "
+                    + " ".join(portfolio_flags[:2])
+                )
+            })
+        elif scores.get("investment_diversification", 100) < 70:
+            roadmap.append({
+                "timeline": "Week 4",
+                "action": "Review your asset mix and improve diversification across equity, debt, gold, and liquid savings."
+            })
+        elif retirement_gap > 0:
+            roadmap.append({
+                "timeline": "Week 4",
+                "action": (
+                    f"Your retirement plan is below target trajectory. "
+                    f"Review whether you can gradually move your SIP toward about Rs. {recommended_sip:,.0f}."
+                )
+            })
+        else:
+            roadmap.append({
+                "timeline": "Week 4",
+                "action": "Review progress across savings, investments, and retirement tracking, and rebalance if needed."
+            })
+
+        return roadmap
+
     def build_llm_prompt(
         self,
         planner_result: Dict[str, Any],

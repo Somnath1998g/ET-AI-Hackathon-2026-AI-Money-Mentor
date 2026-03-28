@@ -37,7 +37,8 @@ export default function InsightsTab() {
   const actionItems = data?.personalized_action_plan ?? [];
   const combinedScoresRaw = data?.combined_scores ?? {};
   const beforeAfter = data?.before_after_projection ?? [];
-  const roadmap = data?.roadmap ?? [];
+  const roadmap = Array.isArray(data?.roadmap) ? data.roadmap : [];
+  const next_30_days = Array.isArray(data?.next_30_days) ? data.next_30_days : [];
 
   const combinedScores = Object.entries(combinedScoresRaw).map(([name, current]) => ({
     name,
@@ -139,7 +140,7 @@ export default function InsightsTab() {
           <h4 className="font-heading text-base font-semibold">What to Do in the Next 30 Days</h4>
         </div>
         <div className="space-y-3">
-          {roadmap.map((item: any, idx: number) => (
+          {next_30_days.map((item: any, idx: number) => (
             <div key={idx} className="glass-card rounded-xl p-4">
               <p className="text-sm font-semibold text-primary mb-1">{item.timeline}</p>
               <p className="text-sm text-muted-foreground">{item.action}</p>
@@ -178,7 +179,7 @@ export default function InsightsTab() {
               />
               <Legend wrapperStyle={{ fontSize: 12 }} />
               <Bar dataKey="current" name="Current" fill="hsl(217, 91%, 60%)" radius={[4, 4, 0, 0]} barSize={28} />
-              <Bar dataKey="projected" name="Projected" fill="hsl(217, 91%, 60%)" fillOpacity={0.5} radius={[4, 4, 0, 0]} barSize={28} />
+              <Bar dataKey="projected" name="Projected" fill="hsl(168, 86%, 43%)" fillOpacity={0.5} radius={[4, 4, 0, 0]} barSize={28} />
             </BarChart>
           </ResponsiveContainer>
         </div>
