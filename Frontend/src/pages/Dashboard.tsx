@@ -9,10 +9,10 @@ import RetirementTab from "@/components/dashboard/RetirementTab";
 import InsightsTab from "@/components/dashboard/InsightsTab";
 
 const tabs = [
-  { id: "overview", label: "Overview", icon: LayoutDashboard },
-  { id: "portfolio", label: "Portfolio", icon: PieChart },
+  { id: "overview", label: "Money Health Score", icon: LayoutDashboard },
+  { id: "portfolio", label: "Portfolio X-Ray", icon: PieChart },
   { id: "retirement", label: "Retirement Plan", icon: TrendingUp },
-  { id: "insights", label: "Insights", icon: Lightbulb },
+  { id: "insights", label: "AI Insights", icon: Lightbulb },
 ] as const;
 
 type TabId = typeof tabs[number]["id"];

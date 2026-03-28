@@ -13,8 +13,10 @@ export default function Landing() {
     <div className="min-h-screen relative overflow-hidden">
       {/* Full background image */}
       <div className="absolute inset-0">
-        <img src={landingBg} alt="" className={`w-full h-full object-cover ${isDark ? "opacity-40" : "opacity-45"}`} />
-        <div className={`absolute inset-0 ${isDark ? "bg-black/60" : "bg-white/50"}`} />
+        {/* <img src={landingBg} alt="" className={`w-full h-full object-cover ${isDark ? "opacity-40" : "opacity-45"}`} />
+        <div className={`absolute inset-0 ${isDark ? "bg-black/60" : "bg-white/50"}`} /> */}
+        <img src={landingBg} alt="" className={`w-full h-full object-cover ${isDark ? "opacity-40" : "opacity-50"}`} />
+<div className={`absolute inset-0 ${isDark ? "bg-black/60" : "bg-black/45"}`} />
       </div>
 
       {/* Nav */}
@@ -64,46 +66,48 @@ export default function Landing() {
 
 
 
-        <p className={`mt-6 text-xl md:text-2xl max-w-xl font-medium ${isDark ? "text-white/80" : "text-muted-foreground"}`}>
+        <p className={`mt-6 text-xl md:text-2xl max-w-xl font-medium ${isDark ? "text-white/80" : "text-foreground"}`}>
           with your own <span className={`font-bold ${isDark ? "text-white" : "text-foreground"}`}>AI financial adviser.</span>
         </p>
         <div className="flex flex-col sm:flex-row gap-3 mt-10">
           <Button size="lg" onClick={() => navigate("/auth")} className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 gap-2 shadow-lg hover:shadow-xl transition-all text-lg">
             Get Started <ArrowRight className="w-5 h-5" />
           </Button>
-          {/* <Button
-            size="lg"
-            variant="outline"
-            onClick={() => navigate("/auth")}
-            className={isDark ? "border-white/30 text-white bg-white/10 hover:bg-white/20 px-8 text-lg" : "border-primary/30 text-primary hover:bg-primary/10 px-8 text-lg"}
-          >
-            Try for Free
-          </Button> */}
+          
         </div>
       </section>
 
       {/* Bottom features */}
       <section className="relative z-10 mt-auto px-6 md:px-12 pb-12 max-w-5xl mx-auto">
-        <div className="grid md:grid-cols-3 gap-8 text-center">
-          {[
-            { icon: Users , title: "Trust our", bold: "experienced AI advisor" },
-            { icon: TrendingUp, title: "The most effective", bold: "financial strategies" },
-            { icon: Target , title: "We are focused on", bold: "your needs." },
-          ].map((item) => (
-            <div key={item.bold} className="flex flex-col items-center gap-3">
-              <div className={`w-14 h-14 rounded-full border-2 flex items-center justify-center ${
-                isDark ? "border-white/30" : "border-primary/30"
-              }`}>
-                <item.icon className={`w-7 h-7 ${isDark ? "text-white" : "text-primary"}`} />
-              </div>
-              <p className={`text-sm ${isDark ? "text-white/80" : "text-muted-foreground"}`}>
-                {item.title}{" "}
-                <span className={`font-bold block ${isDark ? "text-white" : "text-foreground"}`}>{item.bold}</span>
-              </p>
-            </div>
-          ))}
+  <div className="grid md:grid-cols-3 gap-8 text-center">
+    {[
+      { icon: Users, title: "Trust our", bold: "experienced AI advisor" },
+      { icon: TrendingUp, title: "The most effective", bold: "financial strategies" },
+      { icon: Target, title: "We are focused on", bold: "your needs." },
+    ].map((item) => (
+      <div key={item.bold} className="flex flex-col items-center gap-3">
+        <div
+          className={`w-14 h-14 rounded-full border-2 flex items-center justify-center ${
+            isDark ? "border-white/30" : "border-black/70 bg-white/40"
+          }`}
+        >
+          <item.icon className={`w-7 h-7 ${isDark ? "text-white" : "text-black"}`} />
         </div>
-      </section>
+
+        <p
+          className={`text-sm ${
+            isDark ? "text-white/80" : "text-black"
+          }`}
+        >
+          {item.title}{" "}
+          <span className={`font-bold block ${isDark ? "text-white" : "text-black"}`}>
+            {item.bold}
+          </span>
+        </p>
+      </div>
+    ))}
+  </div>
+</section>
     </div>
   );
 }
