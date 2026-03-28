@@ -141,8 +141,8 @@ export default function OverviewTab() {
               <YAxis domain={[0, 100]} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, color: "hsl(var(--foreground))" }} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Bar dataKey="current" name="Current Score" fill="hsl(217, 91%, 60%)" radius={[4, 4, 0, 0]} barSize={20} />
-              <Bar dataKey="ideal" name="Ideal Score" fill="hsl(217, 91%, 60%)" fillOpacity={0.3} radius={[4, 4, 0, 0]} barSize={20} />
+              <Bar dataKey="current" name="Current Score" fill="hsl(217, 64%, 53%)" radius={[4, 4, 0, 0]} barSize={20} />
+              <Bar dataKey="ideal" name="Ideal Score" fill="hsl(164, 82%, 54%)" radius={[4, 4, 0, 0]} barSize={20} />
             </BarChart>
           </ResponsiveContainer>
         </div>

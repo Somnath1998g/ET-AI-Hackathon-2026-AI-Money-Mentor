@@ -65,7 +65,7 @@ class HoldingInput(BaseModel):
     invested_amount: float = Field(..., ge=0)
     current_value: float = Field(..., ge=0)
     expense_ratio: float = Field(..., ge=0)
-    transactions: List[TransactionInput]
+    transactions: Optional[List[TransactionInput]] = None
 
 
 class PortfolioRequest(BaseModel):
@@ -145,7 +145,7 @@ def portfolio_xray(payload: PortfolioRequest):
 async def portfolio_xray_upload(
     file: UploadFile = File(...),
     benchmark_return: float = Form(12.0),
-    risk_preference: str = Form("Moderate"),
+    risk_preference: str = Form("moderate"),
 ):
     if not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are allowed")
@@ -198,7 +198,15 @@ def ai_mentor_summary(payload: MentorSummaryRequest):
         planner_result=planner_result,
         portfolio_result=portfolio_result,
     )
-    roadmap = explainer_agent.build_roadmap()
+    next_30_days = explainer_agent.build_next_30_days(
+        planner_result=planner_result,
+        portfolio_result=portfolio_result,
+    )
+
+    roadmap = explainer_agent.build_roadmap(
+        planner_result=planner_result,
+        portfolio_result=portfolio_result,
+    )
 
     return {
         "success": True,
@@ -209,6 +217,7 @@ def ai_mentor_summary(payload: MentorSummaryRequest):
             "personalized_action_plan": action_plan,
             "combined_scores": combined_scores,
             "before_after_projection": before_after,
+            "next_30_days": next_30_days,
             "roadmap": roadmap,
         },
     }
