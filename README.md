@@ -78,6 +78,29 @@ AI Money Mentor includes four main modules:
 - **Groq API** for LLM inference
   
 ---
+## 🏗️ Architecture Overview
+
+The project follows a **frontend-backend split architecture**:
+
+- **Frontend**: React + TypeScript + Tailwind CSS
+- **Backend**: FastAPI + Python
+- **AI Layer**: Groq-powered explanation layer for summary and insight generation
+- **Finance Logic**: deterministic Python engines for scoring, FIRE math, XIRR, overlap, and recommendation generation
+
+### High-level flow
+
+```text
+Frontend (React)
+   -> sends profile data / uploads / scenario inputs
+Backend (FastAPI)
+   -> routes request to the correct workflow
+Agents / Core Modules
+   -> Planner workflow
+   -> Portfolio workflow
+   -> AI Insights workflow
+Response
+   -> frontend renders cards, charts, tables, and recommendations
+```
 
 ## Project Structure
 
