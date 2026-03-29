@@ -218,13 +218,32 @@ npm run dev
 ```
 Frontend will run at:
 ```bash
-http://localhost:5173
+http://localhost:8080
 ```
-## 3. Run the backend
+## 3. Run the Backend
+
+### macOS / Ubuntu / Linux
+
 ```bash
 cd Backend
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+### Windows (PowerShell)
+``` PowerShell
+cd Backend
+python -m venv venv
+venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+### Windows (Command Prompt)
+```cmd
+cd Backend
+python -m venv venv
+venv\Scripts\activate.bat
 pip install -r requirements.txt
 uvicorn main:app --reload
 ```
@@ -243,3 +262,19 @@ GROQ_API_KEY=your_groq_api_key
 GROQ_MODEL=llama-3.3-70b-versatile
 ```
 If the API key is not configured, the app can still work with rule-based fallback logic for several insight outputs.
+## 🧪 Testing
+
+### Frontend
+
+```bash
+cd frontend
+npm run test
+npm run test:watch
+```
+### Backend
+
+You can test the backend quickly through:
+
+- FastAPI Swagger UI at `/docs`
+- Postman
+- frontend integration
