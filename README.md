@@ -111,8 +111,7 @@ ET-AI-Hackathon-2026-AI-Money-Mentor/
 │   └── ...
 │
 ├── README.md
-├── architecture_document_final.pdf
-└── impact_model_submission_v2.pdf
+├──requirements.txt
 ```
 
 ## 🚀 Tech Stack
