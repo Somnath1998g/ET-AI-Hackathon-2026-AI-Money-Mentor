@@ -111,7 +111,7 @@ ET-AI-Hackathon-2026-AI-Money-Mentor/
 │   └── ...
 │
 ├── README.md
-├──requirements.txt
+├──.gitignore
 ```
 
 ## 🚀 Tech Stack
