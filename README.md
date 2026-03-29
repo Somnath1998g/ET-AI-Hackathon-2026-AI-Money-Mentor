@@ -75,7 +75,8 @@ AI Money Mentor includes four main modules:
 - Retirement and FIRE planning engine
 - Portfolio analysis engine
 - LLM-based mentor summary Agent
-
+- **Groq API** for LLM inference
+  
 ---
 
 ## Project Structure
@@ -86,3 +87,4 @@ AI-Money-Mentor/
 ├── Frontend/         # React frontend
 ├── Backend/          # FastAPI backend
 └── README.md
+
