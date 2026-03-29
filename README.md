@@ -206,7 +206,7 @@ POST /scenario-analysis
 ```
 ## 1. Clone the repository
 ```bash
-git clone https://github.com/<your-username>/ET-AI-Hackathon-2026-AI-Money-Mentor.git
+git clone https://github.com/Somnath1998g/ET-AI-Hackathon-2026-AI-Money-Mentor.git
 cd ET-AI-Hackathon-2026-AI-Money-Mentor
 ```
 ## 2. Run the frontend
