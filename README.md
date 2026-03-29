@@ -114,31 +114,6 @@ ET-AI-Hackathon-2026-AI-Money-Mentor/
 ├── architecture_document_final.pdf
 └── impact_model_submission_v2.pdf
 ```
-### Frontend Stack
-The frontend is built with:
-
-- **React 18**
-- **TypeScript**
-- **Vite**
-- **Tailwind CSS**
-- **shadcn/ui**
-- **Radix UI**
-- **Recharts**
-- **React Router**
-- **React Context**
-- **TanStack React Query**
-- **React Hook Form**
-- **Zod**
-- **Vitest**
-- **Playwright**
-
-### Backend Stack
-The backend is built with:
-
-- **FastAPI**
-- **Pydantic**
-- **Python**
-- **pdfplumber**
 
 ## 🚀 Tech Stack
 
