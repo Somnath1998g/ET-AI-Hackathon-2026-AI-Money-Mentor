@@ -33,7 +33,7 @@ AI Money Mentor includes four main modules:
 - **Portfolio X-Ray**  
   Lets users analyze their mutual fund portfolio using:
   - Manual entry
-  - PDF upload (CAMS / KFintech-style demo format)
+  - PDF upload (CAMS / KFintech-style format)
 
   Outputs include:
   - Total invested amount
@@ -64,8 +64,6 @@ AI Money Mentor includes four main modules:
 - TypeScript
 - Vite
 - Tailwind CSS
-- shadcn/ui
-- Recharts
 
 ### Backend
 - FastAPI
@@ -73,10 +71,10 @@ AI Money Mentor includes four main modules:
 - Uvicorn
 
 ### AI / Logic
-- Rule-based scoring engine
+- Money scoring engine
 - Retirement and FIRE planning engine
 - Portfolio analysis engine
-- LLM-based mentor summary layer
+- LLM-based mentor summary Agent
 
 ---
 
